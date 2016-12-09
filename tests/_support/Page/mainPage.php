@@ -3,6 +3,7 @@ namespace Page;
 
 use Faker\Provider\cs_CZ\DateTime;
 use Helper\DateHelper;
+use SebastianBergmann\GlobalState\RuntimeException;
 
 class mainPage
 {
@@ -28,11 +29,13 @@ class mainPage
     private static $passangers = ['xpath'=>"//*[@class='input _passengers']/div/span"];
     private static $addPassangerButton = ['xpath'=>"//*[@id='ui-id-7-adults-total']/../a[1]/span"];
     private static $selectedNumberOfPassangers = ['xpath'=>"//*[@class='input _passengers']/div/span"];
+    private static $selectedNumberOfAdults = ['xpath'=>"//*[@id='ui-id-7-adults-total']"];
     private static $search = ['xpath'=>"//*[@class='submit submit--desktop']/span"];
     private static $allAirportsOrigin=['xpath' => "//*[@id='ui-id-1']/li[1]"];
     private static $allAirportsDestination=['xpath' => "//*[@id='ui-id-2']/li[2]"];
     private static $preselectedDate=['xpath'=>"//*[@id='ui-datepicker-div']/table/tbody/tr/td[contains(@class,'day')]"];
     private static $preselectedDay=['xpath'=>"//*[@id='ui-datepicker-div']/table/tbody/tr/td[contains(@class,'day')]/a"];
+    private static $previousMonthButton=['xpath'=>".//*[@class=\"ui-datepicker-header ui-widget-header ui-helper-clearfix ui-corner-all\"]/a[1]"];
 
     protected $tester;
     private $helper;
@@ -70,7 +73,7 @@ class mainPage
 
     }
 
-    public function selectCalendarDate($daysFromNow){
+    public function selectCalendarDateFromNow($daysFromNow){
         $I=$this->tester;
 
         $selectMonth = date("m",strtotime("+{$daysFromNow} day"));
@@ -78,28 +81,32 @@ class mainPage
 
         $monthToSelect = $this->helper->returnCorrectMonthForXpathDatePeacker($selectMonth);
         $newDateSelector = ['xpath'=>"//*[@id='ui-datepicker-div']/table/tbody/tr/td[@data-month='{$monthToSelect}']/a[text()='{$selectDay}']"];
-        $I->click($newDateSelector);
+
+        $searchRes = $I->grabMultiple($newDateSelector);
+        if(count($searchRes)==0){
+            $I->click(self::$previousMonthButton);
+            $I->click($newDateSelector);
+        }
+        else{
+            $I->click($newDateSelector);
+        }
     }
 
-    public function selectNumberOfPassangers(){
+    public function selectNumberOfAdultPassangers($numberOfAdults){
         $I=$this->tester;
 
         $I->click(self::$passangers);
         $I->waitForElementVisible(self::$addPassangerButton);
-        $I->click(self::$addPassangerButton);
-        $selectedNumberOfPassangers = $I->grabTextFrom(self::$selectedNumberOfPassangers);
-        $numPas = preg_match("/[^0-9]/",'',$selectedNumberOfPassangers);
-        //print($selectedNumberOfPassangers[0]);
-        print($numPas);
-
-
+        while  (($I->grabAttributeFrom(self::$selectedNumberOfAdults,'aria-valuenow'))<$numberOfAdults)   {
+            $I->click(self::$addPassangerButton);
+        }
     }
 
     public function search(){
         $I=$this->tester;
 
         $I->click(self::$search);
-        sleep(10);
+        sleep(0);
     }
 
     private function waitForDestinationSearchResult(){

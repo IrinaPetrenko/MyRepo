@@ -14,3 +14,5 @@ modules:
             browser: 'firefox'
             wait: 10
             window_size: maximize
+            restart: true
+            clear_cookies: true

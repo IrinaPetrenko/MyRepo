@@ -1,14 +1,20 @@
 <?php
-use Page\mainPage as mainPage;
+    use Page\mainPage as mainPage;
+    use Page\searchResults as searchResults;
 
-$I = new AcceptanceTester($scenario);
-$I->wantTo("open momondo page and search for flights");
-$I->amOnPage("/");
-$mainPage = new mainPage($I);
-//$mainPage->chooseOrigin("Kiev");
-//$mainPage->chooseDestination("Berlin");
-//$mainPage->selectCalendarDate("7");
-//$mainPage->selectCalendarDate("14");
-$mainPage->selectNumberOfPassangers();
-//$mainPage->search();
-$I->seeInTitle("momondo");
+    $I = new AcceptanceTester($scenario);
+    $I->wantTo("run SECOND test with user");
+    $I->amOnPage("/");
+    $mainPage = new mainPage($I);
+    $searchResults=new searchResults($I);
+    $mainPage->chooseOrigin("Kiev");
+    $mainPage->chooseDestination("Berlin");
+    $mainPage->selectCalendarDateFromNow("7");
+    $mainPage->selectCalendarDateFromNow("14");
+    $mainPage->selectNumberOfAdultPassangers(2);
+    $mainPage->search();
+    $searchResults->waitForEndOfSearch();
+    $searchResults->getAllSearchResultData();
+    $I->seeInTitle("momondo");
+
+
